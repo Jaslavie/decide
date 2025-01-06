@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 import os
 
 class VectorStore:
+    """
+        Vector Store class for storing and querying embeddings
+    """
+
     def __init__(self):
         load_dotenv()
         pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
@@ -17,6 +21,12 @@ class VectorStore:
                 name=self.index_name,
                 dimension=1536, # gpt-4o-mini embedding dimension
                 metric="cosine", # cosine similarity search
+                spec=ServerlessSpec( # create cloud server
+                    cloud="aws",
+                    region="us-east-1",
+                    memory="2gb",
+                    timeout="60s"
+                )
             )
         
         self.index = self.pc.Index(self.index_name)

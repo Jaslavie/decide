@@ -2,7 +2,7 @@ from backend.agents.base_agent import BaseAgent, AgentMessage
 from typing import List, Dict, Any
 from backend.services.vector_store import VectorStore
 import time
-class InputAgent(BaseAgent):
+class TranslatorAgent(BaseAgent):
     """
         Agent that gathers information from the user and converts natural language to structured data with the following abilities:
         - get_user_input: gathers information from the user from the frontend
@@ -11,10 +11,11 @@ class InputAgent(BaseAgent):
     """
 
     def __init__(self):
-        super().__init__(name="input", role="input")
+        super().__init__(name="translator", role="translator")
         self.vector_store = VectorStore()
     
-    async def process_message(self, message: AgentMessage) -> AgentMessage:
+    # Input workflow
+    async def process_input_message(self, message: AgentMessage) -> AgentMessage:
         """ 
             Process the message and return a structured data
             - message: message to process
@@ -46,3 +47,10 @@ class InputAgent(BaseAgent):
                 content=structured_data,
                 metadata={"type": "processed_input"}
             )  
+    
+    # Output workflow
+    async def process_output_message(self, message: AgentMessage) -> AgentMessage:
+        """ 
+            Process the message returned from the planner and return nlp
+            - message: message to process
+        """

@@ -23,9 +23,7 @@ message_bus = MessageBus()
 input_agent = InputAgent()
 planner_agent = PlannerAgent()
 
-# subscribe agents to message bus
-message_bus.subscribe(input_agent.name, input_agent.process_message)
-message_bus.subscribe(planner_agent.name, planner_agent.process_message)
+#* implement subscribe functionality
 
 @app.get("/")
 async def root():

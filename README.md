@@ -3,7 +3,7 @@ The goal of this application is to answer the question: "How can we maximize the
 The application will make decisions based on context of the user.
 The decision-making process will rely on the analysis of trade-offs between the different options.
 
-### Starting application
+## Starting application
 Backend:
 ```
 pip install -r requirements.txt
@@ -29,7 +29,7 @@ We are using a hierarchical design with 4 agents and 1 supervisor:
 - **Supervisor** (Supervisor agent): Orchestrates the decision-making process by delegating tasks and monitoring performance.
 
 Supporting agents:
-- **Input Agent**: Gathers information from the user and converts natural language to structured data.
+- **Translator**: Gathers data and translates to different formats (structured data, vector embeddings, nlp, etc.)
 
 ## Decision making framework
 We will use the Monte Carlo Tree Search (MCTS) algorithm to simulate decisions and extract the optimal plan. We will also reference the following factors:

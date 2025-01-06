@@ -22,7 +22,7 @@ class PhilosopherAgent(BaseAgent):
             The user has the following background: {contexts}.
             Generate 5-10 possible actions for the user to take.
         """
-        actions = await self.llm.generate(prompt)
+        actions = self.llm.generate(prompt)
 
         return actions
     

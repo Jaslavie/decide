@@ -27,10 +27,10 @@ async def run_simulation():
 
     # run pipeline
     translated = await translator.process_input_message(
-        AgentMessage(content = user_input)
+        AgentMessage(content = user_input, from_agent="user", to_agent="translator", metadata={})
     )
 
-    print("starting planner agent")
+    print("\n=== Starting Planning Agent ===\n")
     final_decisions = await planner.plan(translated)
 
     # print

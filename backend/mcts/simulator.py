@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 from typing import List, Dict, Any, Tuple
+import copy
+import random
 
 @dataclass
 class Environment:
@@ -24,10 +26,10 @@ class Environment:
     def __init__(self, initial_state: Dict[str, Any], constraints: Dict[str, Any]):
         self.state = initial_state
         self.constraints = constraints
-        self.possible_actions = []
+        self.possible_actions = list(initial_state.action_metadata.keys()) if hasattr(initial_state, "action_metadata") else []
 
         # initialize impact factors
-        state_attributes = initial_state.get("attributes", {})
+        state_attributes = initial_state.attributes
         self.impact_factors = {
             "risk": state_attributes.get("risk", 0.5),
             "time-constraint": state_attributes.get("time-constraint", 0.5),
@@ -40,13 +42,16 @@ class Environment:
             - action: action to be executed
             - returns: (new_state, reward, is_terminal)
         """
-        new_state = self.state.copy()
-
-        # simulate outcome of actions
+        # Deep copy the current state
+        new_state = copy.deepcopy(self.state)
+        
+        # Calculate reward for this action
         reward = self._calculate_reward(action)
 
-        # update state of game
-        new_state["history"] = new_state.get("history", []) + [action]
+        # Update action history in state
+        if not hasattr(new_state, 'history'):
+            new_state.history = []
+        new_state.history.append(action)
 
         # check if game is over
         is_terminal = self._is_terminal()
@@ -58,26 +63,41 @@ class Environment:
             Calculate the reward based on impact factors
             - output: reward value
         """
-        base_reward = 0.0
-
-        # risk
-        risk_factor = self.impact_factors["risk"]
-        if action in self.state.get("high_risk_actions", []):
-            base_reward += (1 - risk_factor) * - 1.0 # penalize risk-aversion
+        reward = 0.0
         
-        # time 
-        time_factor = self.impact_factors["time-constraint"]
-        if action in self.state.get("long_term_actions", []):
-            base_reward += time_factor * 0.5 # bonus for long-term actions
-
-        # importance
-        importance_factor = self.impact_factors["importance"]
-        base_reward *= (1 * importance_factor) # scale reward by importance
-
-        return base_reward
+        # Get action metadata from state
+        action_metadata = self.state.action_metadata.get(action, {})
+        
+        # Risk factor: penalize high-risk actions if risk tolerance is low
+        if action_metadata.get('is_high_risk', False):
+            risk_penalty = 1 - self.impact_factors['risk']  # Higher risk tolerance = lower penalty
+            reward -= risk_penalty
+        
+        # Time constraint factor: penalize long-term actions if time constraint is high
+        if action_metadata.get('is_long_term', False):
+            time_penalty = self.impact_factors['time-constraint']  # Higher time constraint = higher penalty
+            reward -= time_penalty
+        
+        # Importance factor: boost reward based on importance
+        importance_boost = self.impact_factors['importance']
+        reward += importance_boost
+        
+        return reward
     
     def _is_terminal(self) -> bool:
         """
             Check if game reached terminal state (leaf node)
         """
-        return len(self.state["history"]) >= len(self.possible_actions)
+        return len(self.state.history) >= len(self.possible_actions)
+    
+    def get_action(self) -> str:
+        """
+            Return a random action from the possible actions
+        """
+        return random.choice(self.possible_actions)
+    
+    def copy(self) -> 'Environment':
+        """
+            Return a deep copy of the environment
+        """
+        return copy.deepcopy(self)

@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod 
 from dataclasses import dataclass
 from typing import List, Dict, Any
-
 @dataclass
 class AgentMessage:
     from_agent: str
@@ -22,15 +21,6 @@ class BaseAgent(ABC):
         self.role = role
         self._state = {} # initialize agent state
     
-    @abstractmethod
-    async def process_input_message(self, message: AgentMessage) -> AgentMessage:
-        """ Process incoming messages form other agents """
-        pass
-    
-    @abstractmethod
-    async def process_output_message(self, message: AgentMessage) -> AgentMessage:
-        """ Process outgoing messages to other agents """
-        pass
 
     async def _update_state(self, new_state: Dict[str, Any]) -> None:
         """ 
@@ -39,5 +29,6 @@ class BaseAgent(ABC):
             - Dict[_ , Any]: value of the state
         """
         self._state.update(new_state)
+    
     
     

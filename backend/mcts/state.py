@@ -1,7 +1,7 @@
 # represent the current state of the game. created by the translator
 from dataclasses import dataclass
 from typing import List, Dict
-
+import copy
 @dataclass
 class State:
     """
@@ -16,10 +16,12 @@ class State:
     attributes: Dict[str, float] # contains the user-selected score for risk, time_constraint, importance weights
     description: str
     action_metadata: Dict[str, Dict[str, bool]] # classifies each action
+    history: List[str]                          # contains the history of actions taken
 
     def __init__(self, description: str, attributes: Dict[str, float], embedding: List[float], actions: List[str] = None):
         self.description = description
         self.embedding = embedding
+        self.history = [] # initialize empty action history
 
         # allocate weights for attributes
         default_attributes = {
@@ -58,3 +60,9 @@ class State:
             Actions are long-term if the selected time constraint score is over 0.5
         """
         return self.attributes['time-constraint'] > 0.5
+
+    def copy(self) -> 'State':
+        """
+            Return a deep copy of the state
+        """
+        return copy.deepcopy(self)

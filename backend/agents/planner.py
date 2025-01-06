@@ -24,27 +24,58 @@ class PlannerAgent(BaseAgent):
             Input: 
             - message from translator agent (attributes selected, context embeddings)
         """
-        state = message.content["state"]
-        contexts = message.content["contexts"]
+        try:
+            state = message.content["state"]
+            contexts = message.content.get("contexts", []) 
+            print("contexts used in planning: ", contexts)
+            print("states used in planning: ", state)
 
-        # generate possible decisions
-        possible_actions = await self.philosopher.generate_actions(state, contexts)
+            # generate possible decisions
+            try:
+                possible_actions = await self.philosopher.generate_actions(state, contexts)
+                print("possible actions: ", possible_actions)
+            except Exception as e:
+                print(f"Error in philosopher.generate_actions: {str(e)}")
+                return ["Unable to generate optimal plan. Please try again."]
 
-        # update state with actions
-        state.classify_actions(possible_actions)
+            # update state with actions
+            state._classify_actions(possible_actions)
 
-        # initialize MCTS
-        env = Environment(state, constraints={})
-        search = Search(env)
+            # initialize MCTS
+            try:
+                env = Environment(state, constraints={})
+                search = Search(game=env)
+                print("initialized MCTS")
+            except Exception as e:
+                print(f"Error in initializing MCTS: {str(e)}")
+                return ["Unable to generate optimal plan. Please try again."]
 
-        # run simulations
-        for _ in range(self.num_simulations):
-            search.explore()
-        
-        # get best paths
-        best_paths = search.get_best_paths()
+            # run simulations
+            for _ in range(self.num_simulations):
+                try:
+                    search.explore()
+                    print(f"Simulation {_} completed")
+                except Exception as e:
+                    print(f"Error in simulation {_}: {str(e)}")
+                    continue  # Skip failed simulation and continue with next one
 
-        # analyze paths with reasoning agent
-        analyzed_paths = await self.philosopher.analyze_paths(best_paths)
+            # get best paths - fallback to possible actions if no paths found
+            try:
+                best_paths = search.get_best_paths()
+            except Exception as e:
+                print(f"Error getting best paths: {str(e)}")
+                best_paths = possible_actions  # Fallback to raw actions
 
-        return analyzed_paths
+            # analyze paths with reasoning agent
+            try:
+                analyzed_paths = await self.philosopher.analyze_paths(best_paths)
+            except Exception as e:
+                print(f"Error in path analysis: {str(e)}")
+                return best_paths  # Return unanalyzed paths as fallback
+
+            return analyzed_paths
+
+        except Exception as e:
+            print(f"Critical error in planning: {str(e)}")
+            # Return a basic response rather than failing completely
+            return ["Unable to generate optimal plan. Please try again."]

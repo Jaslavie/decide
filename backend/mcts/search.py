@@ -6,10 +6,10 @@ import random
 
 @dataclass
 class Search:
-    def __init__(self, game, exploration_constant: float = 1.41):
+    def __init__(self, game, exploration_constant: float = 1.41, done: bool = False):
         self.game = game
         self.exploration_constant = exploration_constant
-        self.root = Node(game, done = game.done, parent = None, action_index = None)
+        self.root = Node(game, done, parent=None, action_index=None)
     
     def explore(self):
         """
@@ -22,8 +22,8 @@ class Search:
             - a leaf node has no children
 
         """
-        # find leaf node by selecting highest ucb score
-        current = self
+        # Start from root node instead of self
+        current = self.root
 
         #* selection: recursively select the best child nodes until a leaf node is found
         while current.child:
@@ -31,22 +31,23 @@ class Search:
             max_score = max(c.get_ubc_score() for c in child.values()) # retrieve the child with scores that meet the ubc threshold
             actions = [                                                # retrieve the action that led to the best children
                 a for a, c in child.items() if c.get_ubc_score() == max_score
-            ] 
+            ]
 
             if len(actions) == 0:
                 print("No best node found")
+                break
 
             action = random.choice(actions) # select a random action from the best nodes if there are multiple
             current = child[action]         # select the child node
 
         #* action: play a game or expand the node
         if current.visits < 1:
-            current.wins = current.wins + current.rollout()     # run sim on current node
+            current.wins = current.wins + self.rollout(current)     # Pass current node to rollout
         else:
             current.create_child()
-            if current.child:                                   # select one at random
-                current = random.choice(current.child.values())
-            current.wins = current.wins + current.rollout()     # run sim on new child node
+            if current.child:
+                current = random.choice(list(current.child.values()))
+            current.wins = current.wins + self.rollout(current)     # Pass node to rollout
         
         current.visits += 1
         
@@ -58,22 +59,22 @@ class Search:
             parent.visits += 1
             parent.wins += current.wins  # update the parent node with results from sim at the leaf node
 
-
-    def rollout(self):
+    def rollout(self, node) -> float:
         """
             Simulate the game until the end for each node
+            - node: node to run a simulator on
         """
-        if self.done:
+        if node.done:
             return 0  
 
         # simulate the game
         wins = 0
         done = False
-        new_game = self.game.copy()
+        new_game = node.game.copy()
 
         while not done:
             action = new_game.get_action()
-            observation, reward, done, info = new_game.step(action)
+            _, reward, done = new_game.step(action) 
             wins += reward
             if done:
                 new_game.reset()

@@ -23,8 +23,13 @@ class BaseAgent(ABC):
         self._state = {} # initialize agent state
     
     @abstractmethod
-    async def process_message(self, message: AgentMessage) -> AgentMessage:
+    async def process_input_message(self, message: AgentMessage) -> AgentMessage:
         """ Process incoming messages form other agents """
+        pass
+    
+    @abstractmethod
+    async def process_output_message(self, message: AgentMessage) -> AgentMessage:
+        """ Process outgoing messages to other agents """
         pass
 
     async def _update_state(self, new_state: Dict[str, Any]) -> None:

@@ -1,9 +1,10 @@
-from typing import List, Dict, Any
-from pinecone.grpc import PineconeGRPC as Pinecone
-from pinecone import ServerlessSpec
-import time
+from pinecone import init, Index
 from dotenv import load_dotenv
 import os
+from typing import List, Dict, Any
+import time
+import openai
+import pinecone
 
 class VectorStore:
     """
@@ -15,38 +16,41 @@ class VectorStore:
 
     def __init__(self):
         load_dotenv()
-        pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+        api_key = os.getenv("PINECONE_API_KEY")
+        if not api_key:
+            raise ValueError("PINECONE_API_KEY not found in environment variables")
+            
+        # Initialize pinecone
+        init(
+            api_key=api_key,
+            environment="gcp-starter"  # starter plan
+        )
+        
         self.index_name = "context"
-
-        # create index if it doesn't exist
-        if self.index_name not in pc.list_indexes():
-            pc.create_index(
+        # Create index if it doesn't exist
+        if self.index_name not in pinecone.list_indexes():
+            pinecone.create_index(
                 name=self.index_name,
                 dimension=1536, # gpt-4o-mini embedding dimension
                 metric="cosine", # cosine similarity search
-                spec=ServerlessSpec( # create cloud server
-                    cloud="aws",
-                    region="us-east-1",
-                    memory="2gb",
-                    timeout="60s"
-                )
+                # spec=ServerlessSpec(
+                #     cloud="aws",
+                #     region="us-east-1",
+                #     memory="2gb",
+                #     timeout="60s"
+                # )
             )
         
-        self.index = self.pc.Index(self.index_name)
+        self.index = Index(self.index_name)
     
     async def convert_embedding(self, text: str) -> List[float]:
-        """
-            convert input (text) into numerical vector embedding
-            - text: input of text to convert
-        """
-
-        embeddings = self.pc.interface.embed(
-            model="multilingual-e5-large",
-            inputs=[text],
-            parameters={"input_type": "passage", "truncate": "END"}
+        """Convert text to embedding using OpenAI's API"""
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        response = await openai.Embedding.create(
+            input=text,
+            model="text-embedding-ada-002"
         )
-
-        return embeddings[0]
+        return response['data'][0]['embedding']
 
     async def store_embedding(self, text: str, metadata: Dict[str, Any] = None) -> str:
         """

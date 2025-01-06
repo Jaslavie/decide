@@ -5,5 +5,9 @@ pydantic==2.5.2
 uvicorn==0.24.0
 numpy==1.26.2
 julia==0.6.1
-pinecone-client==2.2.4
+grpcio==1.44.0
+protobuf==3.20.0
+pinecone-client[grpc]==2.2.4
 python-dotenv==1.0.0
+openai==1.0.0
+dotenv==1.0.0

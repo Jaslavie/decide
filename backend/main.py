@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.services.message_bus import MessageBus
-from backend.agents.input import InputAgent
+from backend.agents.translator import InputAgent
 from backend.agents.planner import PlannerAgent
 
 app = FastAPI()

@@ -1,7 +1,7 @@
 # main search algorithm implementation defining the strategy for winning the game
 from dataclasses import dataclass
 from typing import Any
-from node import Node
+from .node import Node
 import random
 
 @dataclass
@@ -20,6 +20,7 @@ class Search:
             - backpropagate the results of the simulation to the parent node
             - rollout simulates the game until the end
             - a leaf node has no children
+
         """
         # find leaf node by selecting highest ucb score
         current = self
@@ -57,8 +58,29 @@ class Search:
             parent.visits += 1
             parent.wins += current.wins  # update the parent node with results from sim at the leaf node
 
+
     def rollout(self):
         """
-            Simulate the game until the end
+            Simulate the game until the end for each node
         """
+        if self.done:
+            return 0  
+
+        # simulate the game
+        wins = 0
+        done = False
+        new_game = self.game.copy()
+
+        while not done:
+            action = new_game.get_action()
+            observation, reward, done, info = new_game.step(action)
+            wins += reward
+            if done:
+                new_game.reset()
+                new_game.close()
+                break
+        
+        return wins
+        
+
         

@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 import math
+from sklearn.metrics.pairwise import cosine_similarity
 
 @dataclass
 class Node:
@@ -9,7 +10,7 @@ class Node:
     Information each node holds and methods to interact with it
     Actions:
     - add child node
-    - calculate ucb score of node
+    - calculate ucb score of node using embeddings
     """
     def __init__(self, game, done, parent, action_index):
         self.child = []                             # list of child nodes 
@@ -48,6 +49,9 @@ class Node:
     def get_ucb_score(self, exploration_constant: float = 1.41) -> float:
         """ 
         Calculate the UCB score to inform the selection of the best node
+        - state embedding: context of the user's background
+        - goal embedding: context of the user's goals
+        - user preferences: extracted from user input (ex: risk-aversion)
         """
         # if the node has not been visited (favor exploration)
         if self.visits == 0:
@@ -59,5 +63,24 @@ class Node:
         exploitation = exploration_constant * math.sqrt(
             math.log(self.parent.visits) / self.visits
         )
-        score = exploitation + exploration
+
+        # extract embeddings 
+        embedding_bonus = 0.0 # bonus added to score 
+        if hasattr(self.state, "embedding") and hasattr(self.game, 'goal_embedding'):
+            similarity = cosine_similarity(
+                self.state.embedding,
+                self.game.goal_embedding
+            )
+            embedding_bonus = similarity * 0.5 # importance of user context
+        
+        # add user preferences to weighting
+        preference_bonus = 0.0
+        if hasattr(self.state, 'attributes'):
+            preferences = self.game.user_preferences # dict of attribute weights
+            for attr, weight in preferences.items():
+                if attr in self.state.attributes: 
+                    preference_bonus += self.state.attributes[attr] * weight
+
+        # calculate the score
+        score = exploitation + exploration + embedding_bonus + preference_bonus
         return score

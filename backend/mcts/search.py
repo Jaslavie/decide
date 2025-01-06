@@ -1,4 +1,4 @@
-# main search algorithm implementation
+# main search algorithm implementation defining the strategy for winning the game
 from dataclasses import dataclass
 from typing import Any
 from node import Node

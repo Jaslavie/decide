@@ -7,7 +7,10 @@ import os
 
 class VectorStore:
     """
-        Vector Store class for storing and querying embeddings
+        Vector Store class for storing and querying embeddings used for reasoning. Embeddings contain:
+        - context of the user's background and goals
+        - decisions the user asks about
+        - contingencies, tradeoffs, and external factors unique to the user's situation
     """
 
     def __init__(self):

@@ -1,0 +1,9 @@
+fastapi==0.104.1
+langchain==0.0.339
+redis==5.0.1
+pydantic==2.5.2
+uvicorn==0.24.0
+numpy==1.26.2
+julia==0.6.1
+pinecone-client==2.2.4
+python-dotenv==1.0.0

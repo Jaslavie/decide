@@ -1,0 +1,3 @@
+/**
+ * Type definition for responses
+ */

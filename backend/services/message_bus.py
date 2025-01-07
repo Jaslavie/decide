@@ -2,14 +2,16 @@
 from typing import Dict, List, Any
 from dataclasses import dataclass
 from backend.agents.base_agent import AgentMessage
+from backend.services.vector_store import VectorStore
 
-class MesassageBus:
+class MessageBus:
     def __init__(self):
         """ 
             Initialize a list of subscribers to each agents
             - callable: functions in the agent that can be called
         """
         self._subscribers: Dict[str, List[callable]] = {} 
+        self.vector_store = VectorStore() 
     
     async def publish(self, message: AgentMessage) -> None:
         """ 

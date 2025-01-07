@@ -25,9 +25,11 @@ class PhilosopherAgent(BaseAgent):
             f"{ins.get('description', '')}" 
             for ins in insights[:3]  # Only use top 3 insights
         ]
-        
+
         prompt = f"""
-            You are a philosopher that generates possible actions for the user.
+            You are a philosopher that generates possible actions for the user. Your advice should be non-generic and tailored to the user's specific situation.
+            Your advice should be actionable. For example, instead of saying "find team mates that complement your skill", 
+            say "find team mates with experience in backend engineering by looking at the Berkeley SkyDeck hackathon team page".
             The user is trying to make a decision about {state.description}.
             The user has the following background: {contexts} and {insights}.
             Here is additional information about the user's risk tolerance, time constraints, and importance of the decision: {state.attributes}.

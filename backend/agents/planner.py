@@ -55,23 +55,36 @@ class PlannerAgent(BaseAgent):
                 print(f"Error classifying actions: {e}")
                 return ["Unable to process request - action classification failed"]
 
-            # initialize MCTS
+            # initialize MCTS with fewer simulations for testing
+            self.num_simulations = 3  # Reduce from 1000 to 3 for testing
+            
             try:
                 env = Environment(state, constraints={})
                 search = Search(game=env)
-                print("initialized MCTS")
+                print("initialized MCTS with state: ", state)
+                
+                print("\nRunning simulations...")
+                for i in range(self.num_simulations):
+                    try:
+                        print(f"\nSimulation {i+1}:")
+                        
+                        search.explore()
+                        print(f"Simulation {i+1} completed")
+                        
+                        # Print simulation results
+                        print(f"Node visits: {search.root.visits}")
+                        print(f"Node wins: {search.root.wins}")
+                        
+                    except Exception as e:
+                        import traceback
+                        print(f"Error in simulation {i}: {str(e)}")
+                        print("Full trace:")
+                        print(traceback.format_exc())
+                        continue
+                        
             except Exception as e:
-                print(f"Error in initializing MCTS: {str(e)}")
+                print(f"Error in MCTS setup: {str(e)}")
                 return ["Unable to generate optimal plan. Please try again."]
-
-            # run simulations
-            for _ in range(self.num_simulations):
-                try:
-                    search.explore()
-                    print(f"Simulation {_} completed")
-                except Exception as e:
-                    print(f"Error in simulation {_}: {str(e)}")
-                    continue  # Skip failed simulation and continue with next one
 
             # get best paths - fallback to possible actions if no paths found
             try:

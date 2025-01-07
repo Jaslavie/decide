@@ -25,5 +25,10 @@ JASMINE_CONTEXT = [
         "category": "skill",
         "text": "Experienced in product development, UI/UX design, and giving technical talks on coding and design",
         "confidence": 0.85
+    },
+    {
+        "category": "preference",
+        "text": "Favors working deeply on a few projects rather than scattering attention and cultivating high-quality relationships.",
+        "confidence": 0.85
     }
 ]

@@ -1,7 +1,8 @@
 # llm service for reasoning and generating actions
 
-import openai
-from typing import List, Dict
+from openai import OpenAI
+from typing import List, Dict, Any
+import json
 import os
 
 class LLMService:
@@ -9,19 +10,31 @@ class LLMService:
         Interface for interacting with the LLM
     """
     def __init__(self):
-        self.llm = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    def generate(self, prompt: str) -> List[str]:
-        """
-            Generate a list of possible actions for the user to take
-        """
-        response = self.llm.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=1000,
-            temperature=0.5, 
-            top_p=0.95,
-            frequency_penalty=0,
-            presence_penalty=0,
-        )
-        return response.choices[0].message.content.split("\n")
+    async def generate(self, prompt: str) -> List[str]:
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7
+            )
+            return response.choices[0].message.content.split('\n')
+        except Exception as e:
+            print(f"Error in generate: {e}")
+            return []
+
+    async def generate_json(self, prompt: str) -> List[Dict[str, Any]]:
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Respond only with valid JSON array"},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7
+            )
+            return json.loads(response.choices[0].message.content)
+        except Exception as e:
+            print(f"Error in generate_json: {e}")
+            return []

@@ -17,7 +17,7 @@ npm run dev
 - [POMDPs.jl](https://juliapomdp.github.io/MCTS.jl/latest/) framework for Monte Carlo Tree Search.
 - [Langchain](https://langchain.com/) framework for multi-agent orchestration.
 - [GPT-4](https://platform.openai.com/docs/models/gpt-4) for NLP parsing.
-- [Pinecone](https://www.pinecone.io/) vector database for context storage.
+- [FAISS](https://github.com/facebookresearch/faiss) vector database for context storage.
 - [Redis](https://redis.io/) for caching and agent state management.
 
 ## Architecture design
@@ -26,7 +26,6 @@ We are using a hierarchical design with 4 agents and 1 supervisor:
 - **Philosopher** (Reasoning agent): Analyzes each step of the simulation and provides feedback on the decisions.
 - **Wizard** (Prediction agent): Predicts the future "next node" based on previous steps by running simulations.
 - **Commander** (Decision agent): Evaluates each decision and decides what the optimal path is.
-- **Supervisor** (Supervisor agent): Orchestrates the decision-making process by delegating tasks and monitoring performance.
 
 Supporting agents:
 - **Translator**: Gathers data and translates to different formats (structured data, vector embeddings, nlp, etc.)

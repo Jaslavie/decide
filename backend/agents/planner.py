@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 from backend.mcts.simulator import Environment
 from backend.mcts.search import Search
 from backend.agents.philosopher import PhilosopherAgent
-
+from backend.mcts.state import State
 class PlannerAgent(BaseAgent):
     """
         Agent that finds the optimal plans by running Monte Carlo Simulations. It has the following abilities:
@@ -26,20 +26,34 @@ class PlannerAgent(BaseAgent):
         """
         try:
             state = message.content["state"]
-            contexts = message.content.get("contexts", []) 
+            if not isinstance(state, State):
+                print("Invalid state object received")
+                return ["Unable to process request - invalid state"]
+            
+            contexts = message.content.get("contexts", []) # extracted from vector store
+            insights = message.content.get("insights", []) # extracted from memory store
             print("contexts used in planning: ", contexts)
-            print("states used in planning: ", state)
+            print("insights used in planning: ", insights)
+            print("states used in planning: ", state.__dict__)  # Print full state details
 
             # generate possible decisions
             try:
-                possible_actions = await self.philosopher.generate_actions(state, contexts)
+                possible_actions = await self.philosopher.generate_actions(state, contexts, insights)
                 print("possible actions: ", possible_actions)
             except Exception as e:
                 print(f"Error in philosopher.generate_actions: {str(e)}")
                 return ["Unable to generate optimal plan. Please try again."]
 
             # update state with actions
-            state._classify_actions(possible_actions)
+            try:
+                if not hasattr(state, '_classify_actions'):
+                    print("State object missing _classify_actions method")
+                    return ["Unable to process request - invalid state object"]
+                
+                state._classify_actions(possible_actions)
+            except Exception as e:
+                print(f"Error classifying actions: {e}")
+                return ["Unable to process request - action classification failed"]
 
             # initialize MCTS
             try:

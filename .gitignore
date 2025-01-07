@@ -26,3 +26,6 @@ yarn-error.log*
 *.env
 
 venv/
+
+# Test data
+backend/tests/test_data.py

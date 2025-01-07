@@ -5,14 +5,29 @@ from backend.mcts.node import Node
 from backend.agents.base_agent import AgentMessage
 from backend.agents.translator import TranslatorAgent
 from backend.agents.planner import PlannerAgent
+from backend.tests.context import JASMINE_CONTEXT
 import asyncio
 
 async def run_simulation():
     print("\n=== Starting Decision Simulation ===\n")
+    # initialize vector store
+    translator = TranslatorAgent()
+    planner = PlannerAgent()
+
+    # store test context data
+    for context in JASMINE_CONTEXT:
+        await translator.vector_store.store_embedding(
+            context["text"],
+            metadata={
+                "text": context["text"],
+                "category": context["category"],
+                "confidence": context["confidence"]
+            }
+        )
 
     # 1. Create sample input data
     user_input = {
-        "text": "What is the best way to build a winning hackathon project?",
+        "text": "What is the #1 most important thing to focus on in my project to win the largest hackathon in the US (treehacks)?",
         "attributes": {
             "risk": 0.8,
             "time-constraint": 0.3,
@@ -20,10 +35,6 @@ async def run_simulation():
         }
     }
     print("User input: ", user_input)
-
-    # 2. create initial state and agents
-    translator = TranslatorAgent()
-    planner = PlannerAgent()
 
     # run pipeline
     translated = await translator.process_input_message(

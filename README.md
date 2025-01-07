@@ -17,11 +17,11 @@ npm run dev
 - [POMDPs.jl](https://juliapomdp.github.io/MCTS.jl/latest/) framework for Monte Carlo Tree Search.
 - [Langchain](https://langchain.com/) framework for multi-agent orchestration.
 - [GPT-4](https://platform.openai.com/docs/models/gpt-4) for NLP parsing.
-- [FAISS](https://github.com/facebookresearch/faiss) vector database for context storage.
+- [FAISS](https://github.com/facebookresearch/faiss) vector database for context storage and retrieval.
 - [Redis](https://redis.io/) for caching and agent state management.
 
-## Architecture design
-We are using a hierarchical design with 4 agents and 1 supervisor:
+## Agent Architecture design
+We are using a hierarchical design with 4 agents:
 - **Planner** (Planning agent): Selects the best options to test in the simulation.
 - **Philosopher** (Reasoning agent): Analyzes each step of the simulation and provides feedback on the decisions.
 - **Wizard** (Prediction agent): Predicts the future "next node" based on previous steps by running simulations.
@@ -30,7 +30,56 @@ We are using a hierarchical design with 4 agents and 1 supervisor:
 Supporting agents:
 - **Translator**: Gathers data and translates to different formats (structured data, vector embeddings, nlp, etc.)
 
-## Decision making framework
+## Memory Architecture
+We will attempt to design a lightweight model of how the human brain processes memory.
+Storage system is stored in `backend/services/memory_store.py`. It is separated into:
+- **Insights**: Short term, lightweight memory of user behavioral patterns stored in-memory.
+```
+# stored as a summarized list of UserInsight objects
+insight = {
+    "category": "background",
+    "description": "The user has been working on a project for 3 months",
+    "confidence": 0.89,
+    "timestamp": 1715136000
+}
+```
+- **Context**: Long-term memory of user's background (ex: goals, preferences, history, etc.) with temporal awareness stored in a vector database (for embeddings) and an SQL database (for metadata).
+```
+# embedding storage
+self.vectors = [
+    [0.023, -0.156, 0.789, ...],  # 1536 element array
+]
+# metadata storage
+self.metadata = [
+    {
+        "text":  "Studying CS & Neuroscience at UCI",
+        "category": "background",
+        "confidence": 0.9,
+        "timestamp": 1715136000
+    }
+]
+```
+
+Context retrieval pipeline is stored in `backend/services/vector_store.py`. It includes:
+- Similarity search to retrieve content-relevant context.
+- Context ranking and filtering to retrieve temporally relevant context.
+```
+# similarity search through context vector database
+# sample input: "How can I win the largest hackathon in the US (treehacks)?"
+{
+    "matches": [
+        {
+            "id": "123",
+            "text": "User is a designer who has won 15 hackathons", # relevant context
+            "category": "background",
+            "confidence": 0.9,
+            "timestamp": 1715136000
+        }
+    ]
+}
+```
+
+## Decision-making framework
 We will use the Monte Carlo Tree Search (MCTS) algorithm to simulate decisions and extract the optimal plan. We will also reference the following factors:
 - Impact on outcomes in other areas of the user's life.
 - Availability of information

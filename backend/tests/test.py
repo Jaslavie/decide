@@ -3,7 +3,7 @@ from backend.agents.translator import TranslatorAgent
 from backend.agents.planner import PlannerAgent
 from backend.tests.context import JASMINE_CONTEXT
 import asyncio
-
+import time
 async def run_simulation():
     print("\n=== Starting Decision Simulation ===\n")
     # initialize agents
@@ -17,7 +17,8 @@ async def run_simulation():
             metadata={
                 "text": context["text"],
                 "category": context["category"],
-                "confidence": context["confidence"]
+                "confidence": context["confidence"],
+                "timestamp": time.time()
             }
         )
 

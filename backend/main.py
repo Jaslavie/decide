@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.message_bus import MessageBus
 from agents.translator import TranslatorAgent
 from agents.planner import PlannerAgent
+from tests.context import JASMINE_CONTEXT
 
 app = FastAPI()
 
@@ -23,6 +24,19 @@ message_bus = MessageBus()
 translator_agent = TranslatorAgent()
 planner_agent = PlannerAgent()
 
+# add test context to vector db
+async def init_vector_store():
+    for context in JASMINE_CONTEXT:
+        await message_bus.vector_store.store_embedding(
+            context["text"],
+            metadata={
+                "text": context["text"],
+                "category": context["category"],
+                "confidence": context["confidence"],
+                "timestamp": context["timestamp"]
+            }
+        )
+
 #* implement subscribe functionality
 
 @app.get("/")
@@ -41,12 +55,14 @@ async def get_context():
         contexts = [
             {
                 "text": match["text"],
-                "category": match["metadata"].get("category", "Unknown")
+                "category": match["metadata"].get("category", "Unknown"),
+                "confidence": match["metadata"].get("confidence", 0.0),
+                "timestamp": match["metadata"].get("timestamp", 0.0)
             }
             for match in query_result.get("matches", [])
         ] if query_result and "matches" in query_result else []
 
-        return {"context": contexts}
+        return {"contexts": contexts}
     except Exception as e:
         return {"error": str(e)}
 
@@ -66,7 +82,9 @@ async def add_context(context: dict):
             context["text"],
             metadata={
                 "text": context["text"],
-                "category": category
+                "category": category,
+                "confidence": context.get("confidence", 0.0),
+                "timestamp": context.get("timestamp", 0.0)
             }
         )
 
@@ -77,7 +95,9 @@ async def add_context(context: dict):
             "status": "success",
             "id": stored_id,
             "text": context["text"],
-            "category": category
+            "category": category,
+            "confidence": context.get("confidence", 0.0),
+            "timestamp": context.get("timestamp", 0.0)
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -85,6 +105,9 @@ async def add_context(context: dict):
 
 if __name__ == "__main__":
     import uvicorn
+    import asyncio
+
+    asyncio.run(init_vector_store())
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 

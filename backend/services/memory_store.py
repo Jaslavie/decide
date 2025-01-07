@@ -64,7 +64,8 @@ class MemoryStore:
             [{{
                 "category": "behavior|preference|goal|pattern",
                 "description": "Clear insight about the user",
-                "confidence": 0.0-1.0
+                "confidence": 0.0-1.0 based on the confidence level of your insight
+                "timestamp": return current timestamp
             }}]
             
             Here are some examples of good descriptions:
@@ -99,7 +100,8 @@ class MemoryStore:
             {
                 "category": i.category,
                 "description": i.description,
-                "confidence": i.confidence
+                "confidence": i.confidence,
+                "timestamp": i.timestamp
             }
             for i in self.insights
         ]

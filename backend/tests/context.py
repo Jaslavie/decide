@@ -2,17 +2,17 @@ from typing import Dict, Any
 
 JASMINE_CONTEXT = [
     {
-        "category": "education",
+        "category": "background",
         "text": "Studying Computer Science and Cognitive Neuroscience at UC Irvine",
         "confidence": 0.95
     },
     {
-        "category": "experience",
+        "category": "background",
         "text": "Incoming Product Design Intern at Palantir Technologies for Summer 2025, working on Gotham Defense Intelligence Platform",
         "confidence": 0.9
     },
     {
-        "category": "achievement",
+        "category": "background",
         "text": "Won 15 out of 17 hackathons including Berkeley SkyDeck AI Hackathon Grand Prize ($68,000)",
         "confidence": 0.95
     },

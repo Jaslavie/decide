@@ -7,6 +7,8 @@ const Context = () => {
      */
     const [context, setContext] = useState([]); // history of context
     const [newContext, setNewContext] = useState(''); // new context added by user
+    const [newCategory, setNewCategory] = useState('education'); // Add this line
+    const categories = ['education', 'experience', 'achievement', 'project', 'skill', 'preference'];
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
@@ -41,7 +43,7 @@ const Context = () => {
     }, []);
 
     // add new context to memory
-    const addContext = async (text) => {
+    const addContext = async (text, category) => {
         if (!text.trim()) return;
         
         try {
@@ -52,9 +54,10 @@ const Context = () => {
                 },
                 body: JSON.stringify({ 
                     text: text,
-                    category: "Unknown"  // Add default category
+                    category: category  // Add default category
                 }),
             });
+           
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -64,6 +67,8 @@ const Context = () => {
             }
             setContext([...context, newContextItem]);
             setNewContext(''); // Clear input after successful add
+
+            console.log("full array of contexts after adding new context:", context);
         } catch (error) {
             console.error('Error adding context:', error);
             alert('Failed to add context: ' + error.message);
@@ -76,6 +81,7 @@ const Context = () => {
     return (
         <div>
             <h1>Context</h1>
+            {/* history of context */}
             <div className="context-list">
                 {context.map((item, index) => (
                     <div key={index} className="context-item">
@@ -85,13 +91,21 @@ const Context = () => {
                 ))}
             </div>
             <div className="add-context">
+                <select 
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                >
+                    {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                </select>
                 <input
                     type="text"
                     value={newContext}
                     onChange={(e) => setNewContext(e.target.value)}
                     placeholder="Add new context"
                 />
-                <button onClick={() => addContext(newContext)}>Add</button>
+                <button onClick={() => addContext(newContext, newCategory)}>Add</button>
             </div>
             
         </div>

@@ -1,4 +1,4 @@
-# stores memory about the user interactions and context
+# short term memory storage
 
 from typing import List, Dict, Any
 from dotenv import load_dotenv
@@ -6,6 +6,8 @@ import os
 from dataclasses import dataclass
 import time
 from backend.services.llm import LLMService
+import numpy as np
+
 # base class for memory storage
 @dataclass
 class Memory:
@@ -23,14 +25,20 @@ class UserInsight:
     timestamp: float
 
 class MemoryStore:
+    """ 
+    functions:
+    - store interactions in short term
+    - create insights about interactions
+    - consolidate insights into long term memory
+    """
     def __init__(self):
         self.interactions = [] # lightweight storage of user interactions and inputs (ex: questions asked, actions taken)
-        self.insights = [] # key summaries about user preferences and behaviors (ex: user is interested in building a product)
-        self.llm = LLMService()
+        self.long_term_memories = [] # long term memory storage of user insights and patterns
+        self.consolidation_threshold = 0.8 # minimum confidence score to move to long term memory  
 
     async def store_interaction(self, text: str, metadata: Dict[str, Any] = None):
         """
-            Store user interaction as a summary
+            Store user interaction as a summary in short term memory
         """
         memory = Memory(
             text=text,
@@ -38,10 +46,14 @@ class MemoryStore:
             type='interaction',
             metadata=metadata or {}
         )
+        # create new memory item
         self.interactions.append(memory)
-        await self._update_summaries(memory)
+        # create a summary of the user's behavior and preferences
+        await self._create_insight(memory)
+        # store in short term memory
+        await self._store_in_short_term_memory(memory)
     
-    async def _update_summaries(self, memory: Memory):
+    async def _create_insight(self, memory: Memory):
         """
             Create a summary of the user's behavior and preferences
         """
@@ -94,16 +106,49 @@ class MemoryStore:
 
         except Exception as e:
             print(f"Error updating insights: {e}")
-
-    def get_relevant_insights(self, query: str) -> List[Dict[str, Any]]:
-        return [
-            {
-                "category": i.category,
-                "description": i.description,
-                "confidence": i.confidence,
-                "timestamp": i.timestamp
-            }
-            for i in self.insights
-        ]
+        
+    async def consolidate_memories(self):
+        """
+        Move from short term memory patterns to long term memory storage in vector store
+        """
+        for memory in self.interactions:
+            if memory.confidence > self.consolidation_threshold:
+                # store in vector store
+                await self.vector_store
+        # keep only recent items 
+        self.interactions = self.interactions[-10:]
+    
+    async def retrieve_memories(self, query: str) -> List[Memory]:
+        """
+        Retrieval mechanism to extract relevant long term memories to short term memory
+        """
         
 
+
+class MemoryCluster:
+    """
+    Group memory insights
+    """
+    def __init__(self, category: str):
+        self.memories = [] # list of memories in a cluster
+        self.category = category
+        self.centroid = None # average of all memories in the cluster
+        self.threshold = 0.7 # similarity to add memory to cluster
+
+    def add_memory(self, memory, embedding):
+        """ add a memory to the cluster if it's close to the centroid """
+        if self.centroid is None:
+            self.centroid = embedding
+        
+        # calculate distance between memory and centroid
+        distance = self._calculate_distance(embedding, self.centroid)
+
+        # if distance is less than a threshold, add to cluster
+        if distance < self.threshold:
+            self.memories.append(memory)
+
+    def _calculate_distance(self, embedding1, embedding2):
+        """ calculate the cosine distance between two embeddings """
+        return np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
+
+        

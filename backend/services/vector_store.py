@@ -1,13 +1,22 @@
+# long term memory storage
+
 from typing import List, Dict, Any
 import numpy as np
 from openai import OpenAI
 import os
 
 class VectorStore:
+    """
+    Long term memory storage:
+    - convert and store user insights as vectors
+    - retrieve relevant memories to answer a query
+    - reinforce frequently accessed memories
+    """
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.vectors = []  # Store vectors in memory for now
         self.metadata = []  # Store corresponding metadata
+        self.access_counts = {} # track access count for each memory
 
     async def convert_embedding(self, text: str) -> List[float]:
         try:
@@ -64,3 +73,12 @@ class VectorStore:
         except Exception as e:
             print(f"Error in similarity calculation: {e}")
             return {"matches": []}
+    
+    async def reinforce_memory(self, memory_id: str):
+        """
+        Reinforce a memory based on frequency of access
+        """
+        # increment access count
+        self.access_counts[memory_id] = self.access_counts.get(memory_id, 0) + 1
+        # update vector store by moving it to the front of the list
+        self.vectors.insert(0, self.vectors.pop(memory_id))

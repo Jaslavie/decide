@@ -91,3 +91,4 @@ We will use the Monte Carlo Tree Search (MCTS) algorithm to simulate decisions a
 - [Monte Carlo Tree Search (MCTS)](https://medium.com/@_michelangelo_/monte-carlo-tree-search-mcts-algorithm-for-dummies-74b2bae53bfa)
 - [MCTS in Reinforcement Learning](https://www.jair.org/index.php/jair/article/download/11099/26289/20632)
 - [Upper Confidence Bound Algorithm](https://kfoofw.github.io/bandit-theory-ucb-analysis/)
+- [Context retrieval in llms and types of memeory](https://uptrain.medium.com/a-comprehensive-guide-to-context-retrieval-in-llms-212eb3893075)
